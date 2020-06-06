@@ -130,34 +130,25 @@ public ArrayList<Integer> findRoomAvailability(LocalDate Date,LocalTime StartTim
 {
 /**The Rooms with enough number of computers*/	
 ArrayList<Integer>roomsAvailable=getRoomsId(numberOfComputers);
-/**This Array is going to store the rooms available that are not used at that time and date*/
-ArrayList<Integer>roomsAvBooking=new ArrayList<Integer>();
 /**inerithate throught the Rooms id to check teh available rooms */
-for(int id:roomsAvailable) {
-for(Booking b:bookings.values())
-{	
+for(int x=0;x<roomsAvailable.size();x++) {	
+for(Booking b:bookings.values()) {	
+	
    if(!roomsAvailable.isEmpty())	
    {
-	   /**If the date are different or the id are different of any in the booking, then it cant be add to the available one */
-	   if(!b.getBookingDate().isEqual(Date) || id!=b.getRoomId())
-	   {
-		   roomsAvBooking.add(id);
-	   }
-	   //if the room is booked at some point during the day requested by the client , the program does further check
-       else if(b.getBookingDate().isEqual(Date) && id==b.getRoomId())
-	  {
-    	   /**If the tiem of the booking is before , or after, the booking already made on the room , then it can be added to the available one */
-		  if(!b.getStartingTime().equals(StartTime) && !b.getFinishTime().equals(StartTime) && ((StartTime.isBefore(b.getStartingTime())&& FinishTime.isBefore(b.getStartingTime())) || (StartTime.isAfter(b.getFinishTime())&&FinishTime.isAfter(b.getFinishTime()))))
-		  {
-			  roomsAvBooking.add(id);
-		  }
-		   /**if the books start when the already in the system bookings finish , or the other way around, then the room is available*/
-		  else if(b.getStartingTime().equals(FinishTime)||b.getFinishTime().equals(StartTime))
-		  {
-			  roomsAvBooking.add(id);
-		  }
-		  
-	  }
+	 if(roomsAvailable.get(x)==b.getRoomId() && Date.equals(b.getBookingDate()))
+	 {
+		 if(StartTime.equals(b.getStartingTime())&&FinishTime.equals(b.getFinishTime())) {
+			roomsAvailable.remove(x);
+		
+		 }
+		 if(StartTime.isAfter(b.getStartingTime())&&StartTime.isBefore(b.getFinishTime()) || FinishTime.isBefore(b.getFinishTime())&&FinishTime.isAfter(b.getStartingTime()))
+		 {
+			 
+				 roomsAvailable.remove(x);
+
+		 }
+	 }  
    }
    /**If there were no data retrieve from the getRoomsId() method , that means there is no room with enough computers */
    else
@@ -166,7 +157,7 @@ for(Booking b:bookings.values())
    }
   }
 }
-return roomsAvBooking;
+return roomsAvailable;
 }
 /**
  * Actually write if a  booking  is found in the file, and add them to the Hash Map
@@ -208,7 +199,7 @@ public void addBooking(int clientID,int numberOfComputers,LocalDate Date,LocalTi
 	}
 	/**Message if no room is found */
 	else{
-		System.out.println("No rooms Available with that number of computers");
+		System.out.println("No rooms Available with that number of computers at this date and time");
 		
 	}
     
