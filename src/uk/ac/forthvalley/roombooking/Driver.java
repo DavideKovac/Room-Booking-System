@@ -1,15 +1,12 @@
 package uk.ac.forthvalley.roombooking;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Scanner;
 /**
  * The Class where the user insert info for the Bookings and the Client
@@ -65,6 +62,11 @@ public class Driver {
     	Scanner s=new Scanner(System.in);
     	System.out.println("1.Add a Client \n2.Add a Booking \n3.Remove Booking \n4.Show Bookings \n5.Show Clients \n6.Exit ");
     	/**Get the user choice */
+    	 while (!s.hasNextInt()) {
+		        System.out.println("That's not a valid menu choice!");
+		        System.out.println("1.Add a Client \n2.Add a Booking \n3.Remove Booking \n4.Show Bookings \n5.Show Clients \n6.Exit ");
+		        s.next(); 
+		    }
     	choice=s.nextInt();
     	s.nextLine();
     	/**Add a Client to the system*/
@@ -72,27 +74,67 @@ public class Driver {
     	{
     		System.out.println("Email: ");
     	    String email=s.nextLine();
+    	    while(email.isEmpty() || !email.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$"))
+        	{
+    			System.out.println("Email wrong format");
+    			System.out.println("Email: ");
+        	    email=s.nextLine();
+        	}
     		System.out.println("PhoneNumber: ");
     		String phoneNumber=s.nextLine();
+    		while(phoneNumber.isEmpty())
+    		{
+    			System.out.println("Phone Number wrong format");
+    			System.out.println("PhoneNumber: ");
+        	    phoneNumber=s.nextLine();
+    		}
     		managerclient.addClient(email,phoneNumber);
     	}
     	/**Add a booking to the System*/
     	else if (choice==2)
     	{
     		System.out.println("Client Id:");
+    		 while (!s.hasNextInt()) {
+    		        System.out.println("That's not a valid id");
+    		        System.out.println("Client Id:");
+    		        s.next(); 
+    		    }
     		int clientId=s.nextInt();
     		s.nextLine();
     		System.out.println("Number Of Computers:");
+    		 while (!s.hasNextInt()) {
+ 		        System.out.println("That's not a valid number of computers");
+ 		        System.out.println("Number Of Computers:");
+ 		        s.next(); 
+ 		    }
     	    int numOfComp=s.nextInt();
     	    s.nextLine();
-    		System.out.println("Date(dd/mm/yyyy):");
-    		String dateStr=s.nextLine();
-    		LocalDate date=LocalDate.parse(dateStr,DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        	System.out.println("Date(dd-mm-yyyy):");
+        	String dateStr=s.nextLine();
+        	while(!dateStr.matches("\\d{2}-\\d{2}-\\d{4}"))
+        	{
+        		System.out.println("Wrong Date Format!");
+        		System.out.println("Date(dd-mm-yyyy):");
+            	 dateStr=s.nextLine();
+        	}
+        	LocalDate date=LocalDate.parse(dateStr,DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     		System.out.println("Starting Time(hh:mm):");
     		String startingTimeStr=s.nextLine();
+    		while(!startingTimeStr.matches("\\d{2}:\\d{2}"))
+        	{
+    			System.out.println("Wrong Time Format!");
+    			System.out.println("Starting Time(hh:mm):");
+        		startingTimeStr=s.nextLine();
+        	}
     		LocalTime startingTime=LocalTime.parse(startingTimeStr,DateTimeFormatter.ofPattern("HH:mm"));
     		System.out.println("Finish Time(hh:mm):");
     		String finishTimeStr=s.nextLine();
+    		while(!finishTimeStr.matches("\\d{2}:\\d{2}"))
+        	{
+    			System.out.println("Wrong Time Format!");
+    			System.out.println("Starting Time(hh:mm):");
+        		finishTimeStr=s.nextLine();
+        	}
     		LocalTime finishTime=LocalTime.parse(finishTimeStr,DateTimeFormatter.ofPattern("HH:mm"));
     		managerbooking.addBooking(clientId,numOfComp,date,startingTime,finishTime);
     		
@@ -109,11 +151,12 @@ public class Driver {
     	{
     		int recordCount = managerbooking.getBookingSize();
     		ArrayList<Booking> bookingList =managerbooking.getBooking();
-
+            String roomNumber;
     		System.out.println("------\nBooking list.\n");
     		System.out.printf("Number of bookings: %d\n", recordCount);
     		for (Booking b : bookingList) {
-    			System.out.println("ID:"+b.getIdNumber()+" Date:"+b.getBookingDate()+" Start Time: "+b.getStartingTime()+" Finish Time:"+b.getFinishTime()+" Client Id: "+b.getClientId()+" Room Id: "+b.getRoomId());
+    			roomNumber=managerbooking.roomNumber(b.getRoomId());
+    			System.out.println("ID:"+b.getIdNumber()+" Date:"+b.getBookingDate()+" Start Time: "+b.getStartingTime()+" Finish Time:"+b.getFinishTime()+" Client Id: "+b.getClientId()+" Room Number: "+roomNumber);
     		}
     		System.out.print("\n-------------\n");
     	}
@@ -138,7 +181,7 @@ public class Driver {
     	/**Give the message at the user if a wrong input is given*/
     	else
     	{
-    		System.out.println("No menu choice");
+    		System.out.println("That's not a valid menu choice!");
     	}
     	}while(choice!=6);
     }
