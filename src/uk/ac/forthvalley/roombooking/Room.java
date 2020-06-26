@@ -11,8 +11,6 @@ public class Room implements Serializable {
 	private static final long serialVersionUID=1l;
 	/**The room id , that is unique*/
 	private int roomId;
-	/**The number of seats in the room*/
-	private int numberOfSeats;
 	/**The Room number*/
 	private String roomNumber;
 	/**The number of computer in the room*/
@@ -33,10 +31,9 @@ public class Room implements Serializable {
 	 * @param printerAvailability If the printer is available
 	 * @param smartboardAvailability If the smartboard is available
 	 */
-	public Room(int roomId, int numberOfSeats,int numberOfComputers, String roomNumber, int numberOfBreakouts, boolean printerAvailability,
+	public Room(int roomId,int numberOfComputers, String roomNumber, int numberOfBreakouts, boolean printerAvailability,
 			boolean smartboardAvailability) {
 		this.roomId = roomId;
-		this.numberOfSeats = numberOfSeats;
 		this.numberOfComputers=numberOfComputers;
 		this.roomNumber = roomNumber;
 		this.numberOfBreakouts = numberOfBreakouts;
@@ -57,19 +54,6 @@ public class Room implements Serializable {
 	public int getIdNumber()
 	{
 		return roomId;
-	}
-    /**
-     * @return the number of seats
-     */
-	public int getNumberOfSeats() {
-		return numberOfSeats;
-	}
-    /**
-     * Set the number of seats
-     * @param numberOfSeats
-     */
-	private void setNumberOfSeats(int numberOfSeats) {
-		this.numberOfSeats = numberOfSeats;
 	}
 	/**
 	 * @return the number of computers
