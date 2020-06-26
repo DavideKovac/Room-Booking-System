@@ -1,6 +1,5 @@
 package uk.ac.forthvalley.roombooking;
 
-import java.awt.List;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,9 +11,8 @@ import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 /**
@@ -66,16 +64,16 @@ throws IOException,ClassNotFoundException
 public static void addAllRoom()
 {
 
-	rooms.add(new Room(1,10,0,"006",12,false,true));
-	rooms.add(new Room(2,20,18,"008",10,true,true));
-	rooms.add(new Room(3,20,20,"011",0,true,true));
-	rooms.add(new Room(4,10,6,"013",0,false,false));
-	rooms.add(new Room(5,20,18,"014",2,true,true));
-	rooms.add(new Room(6,18,18,"015",10,true,true));
-	rooms.add(new Room(7,20,10,"017",10,true,true));
-	rooms.add(new Room(8,20,0,"108",20,true,false));
-	rooms.add(new Room(9,18,0,"120",0,true,true));
-	rooms.add(new Room(10,20,6,"301",6,true,true));
+	rooms.add(new Room(1,0,"006",12,false,true));
+	rooms.add(new Room(2,18,"008",10,true,true));
+	rooms.add(new Room(3,20,"011",0,true,true));
+	rooms.add(new Room(4,6,"013",0,false,false));
+	rooms.add(new Room(5,18,"014",2,true,true));
+	rooms.add(new Room(6,18,"015",10,true,true));
+	rooms.add(new Room(7,10,"017",10,true,true));
+	rooms.add(new Room(8,0,"108",20,true,false));
+	rooms.add(new Room(9,0,"120",0,true,true));
+	rooms.add(new Room(10,6,"301",6,true,true));
 }
 /**
  * Write the Client to the File, taking the information from the driver
@@ -100,7 +98,7 @@ public void addClient(String clientEmail,String clientPhoneNumber) throws FileNo
  * @param numberOfComputers the number of computers requested
  * @return The arraylist of the room with enough computers
  */
-public ArrayList<Integer> getRoomsId(int numberOfComputers)
+private ArrayList<Integer> getRoomsId(int numberOfComputers)
 {
 	
 ArrayList<Integer> roomsId=new ArrayList<>();
@@ -126,38 +124,100 @@ return roomsId;
  * @throws EOFException
  * @throws IOException
  */
-public ArrayList<Integer> findRoomAvailability(LocalDate Date,LocalTime StartTime,LocalTime FinishTime,int numberOfComputers) throws FileNotFoundException, ClassNotFoundException, EOFException, IOException 
+private ArrayList<Integer> getRoomsId(LocalDate Date,LocalTime StartTime,LocalTime FinishTime,int numberOfComputers) throws FileNotFoundException, ClassNotFoundException, EOFException, IOException 
 {
 /**The Rooms with enough number of computers*/	
 ArrayList<Integer>roomsAvailable=getRoomsId(numberOfComputers);
+/**Remove safely from the list */
+Iterator it=roomsAvailable.iterator();
 /**inerithate throught the Rooms id to check teh available rooms */
-for(int x=0;x<roomsAvailable.size();x++) {	
+if(!roomsAvailable.isEmpty()) {
+while(it.hasNext()) {
+int id=(int)it.next();
 for(Booking b:bookings.values()) {	
-	
-   if(!roomsAvailable.isEmpty())	
-   {
-	 if(roomsAvailable.get(x)==b.getRoomId() && Date.equals(b.getBookingDate()))
+	 if(id==b.getRoomId() && Date.equals(b.getBookingDate()))
 	 {
 		 if(StartTime.equals(b.getStartingTime())&&FinishTime.equals(b.getFinishTime())) {
-			roomsAvailable.remove(x);
-		
+			it.remove();
 		 }
-		 if(StartTime.isAfter(b.getStartingTime())&&StartTime.isBefore(b.getFinishTime()) || FinishTime.isBefore(b.getFinishTime())&&FinishTime.isAfter(b.getStartingTime()))
+		 else if(StartTime.isAfter(b.getStartingTime())&&StartTime.isBefore(b.getFinishTime()) || FinishTime.isBefore(b.getFinishTime())&&FinishTime.isAfter(b.getStartingTime()))
 		 {
-			 
-				 roomsAvailable.remove(x);
-
+			 it.remove();
 		 }
+		 else if(StartTime.equals(b.getStartingTime()) && FinishTime.isAfter(b.getFinishTime()))
+		 {
+			 it.remove();
+		 }
+		 else if(StartTime.isBefore(b.getStartingTime())&&FinishTime.equals(b.getFinishTime()))
+		 {
+			 it.remove();
+		 }
+		
 	 }  
    }
-   /**If there were no data retrieve from the getRoomsId() method , that means there is no room with enough computers */
-   else
+   
+}
+/**If there were no data retrieve from the getRoomsId() method , that means there is no room with enough computers */
+}else
    {
 	   System.out.println("No room available with that Number of Computers");
    }
-  }
-}
 return roomsAvailable;
+}
+/**
+ * This Methods check that the room given is teh best available(closest number of computers)
+ * @param numberOfComputers the number of computers
+ * @param Date date of the booking
+ * @param StartTime start time of the booking
+ * @param FinishTime finish time of the booking
+ * @return The id of the best available matching room
+ * @throws FileNotFoundException
+ * @throws ClassNotFoundException
+ * @throws EOFException
+ * @throws IOException
+ */
+private int getBestMatch(int numberOfComputers,LocalDate Date,LocalTime StartTime,LocalTime FinishTime) throws FileNotFoundException, ClassNotFoundException, EOFException, IOException
+{
+	/**Get all the available rooms after checking the number of computers , and if his available at requested time or date*/
+	ArrayList<Integer>roomsAvailable=getRoomsId(Date,StartTime,FinishTime,numberOfComputers);
+	/**this store the id of the best fit room */
+	int bestFitId=0;
+	/**The difference between the computers requested and the one of the available rooms */
+	int computerDifference;
+	/**the difference of the best match at the moment, is a huge number so at the start the first room is going to become the best match */
+	int bestMatchDifference=1000;
+	/**check if there are available rooms,if there arent return a 0 */
+	if(!roomsAvailable.isEmpty())
+	{
+		/**Iterate trought the room */
+		for(Room r:rooms)
+		{
+			/**iterate trought the available room */
+			for(int id:roomsAvailable)
+			{
+				/**If a room is on the list then do the check of the difference*/
+				if(id==r.getIdNumber())
+				{
+					/**Get the difference between the requested computers,0 is best fit , less the best */
+					computerDifference=r.getNumberOfComputers()-numberOfComputers;
+				    /**Compare the difference between the best match for now and the one just checked,if the number is smaller then change the best fit */
+					if(computerDifference<=bestMatchDifference)
+					{
+						/**If the if statement is true, then change the best match difference */
+						bestMatchDifference=computerDifference;
+						/**change the id of the best fit */
+						bestFitId=id;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	return bestFitId;
+		
 }
 /**
  * Actually write if a  booking  is found in the file, and add them to the Hash Map
@@ -174,15 +234,13 @@ public void addBooking(int clientID,int numberOfComputers,LocalDate Date,LocalTi
 { 
 	/**Retrieve last ID */
 	bookingId=getBookingLastId();
-	/**Store all the id found in the findRoomAvailability() method*/ 
-	ArrayList<Integer>roomsAvailable=findRoomAvailability(Date,StartTime,FinishTime,numberOfComputers);
+	/**get the best matching ID for the room*/
+	int roomId=getBestMatch(numberOfComputers,Date,StartTime,FinishTime);
 	/** Check if no room was found*/
-	if(!roomsAvailable.isEmpty()) {
+	if(roomId!=0) {
     /**Check if that the Start time is before the Finish Time */
 	if(StartTime.isBefore(FinishTime))
 		{
-              /**Get The first Room in the Array(Not most functional way) */		
-		      int roomId=roomsAvailable.get(0);
 		      /**Create the booking */
 			  Booking b=new Booking(bookingId,Date,StartTime,FinishTime,clientID,roomId);
 			  /**Add the booking to the Hash Map */
@@ -349,5 +407,17 @@ public ArrayList<Client> getClient() throws FileNotFoundException, ClassNotFound
 	loadRecords();
 	ArrayList<Client> allClient = new ArrayList<>(clients.values());
 	return allClient;
+}
+public String roomNumber(int roomId)
+{
+	String roomNumber="";
+	for(Room r:rooms)
+	{
+		if(r.getIdNumber()==roomId)
+		{
+			roomNumber=r.getRoomNumber();
+		}
+	}
+	return roomNumber;
 }
 }
